@@ -1,11 +1,7 @@
 package net.pspman.heb.controller;
 
 import javax.ws.rs.BadRequestException;
-import javax.ws.rs.POST;
-
-import java.io.IOException;
 import java.math.BigInteger;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -37,8 +33,10 @@ public class ImageController {
     public ResponseEntity<List<ImageEntity>> getImages(@Param("objects") String objects){
         List<ImageEntity> images;
         if(StringUtils.isBlank(objects)){
+            log.debug("Getting all images");
             images = imageService.getAllImages();
         }else {
+            log.debug("Getting images that contain objects : {}", objects);
             images = imageService.getImagesByObjects(Arrays.asList(objects.split(",")));
         }
         return ResponseEntity.ok(images);
@@ -46,17 +44,21 @@ public class ImageController {
 
     @GetMapping("/{imageId}")
     public ResponseEntity<?> getSingleImage( @PathVariable BigInteger imageId){
+        log.debug("Getting image with ID : {}", imageId);
 
-        return ResponseEntity.ok(imageService.getImageById(imageId));
+        ImageEntity image = imageService.getImageById(imageId);
+        log.debug("Returning image with ID : {}", imageId);
+
+        return ResponseEntity.ok(image);
     }
 
     @PostMapping
-    public ResponseEntity<ImageEntity> postProcessImage(@RequestBody ImageRequest imageRequest) throws IOException {
-
+    public ResponseEntity<ImageEntity> postProcessImage(@RequestBody ImageRequest imageRequest) {
         if (!StringUtils.isNotBlank(imageRequest.getUrl())) {
             throw new BadRequestException("Missing url");
         }
 
+        log.debug("Processing new image with URL : {}", imageRequest.getUrl());
         ImageEntity image = imageService.processImage(imageRequest);
         return ResponseEntity.ok(image);
     }

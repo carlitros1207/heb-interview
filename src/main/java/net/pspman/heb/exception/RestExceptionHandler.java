@@ -1,5 +1,6 @@
 package net.pspman.heb.exception;
 
+import javax.persistence.EntityNotFoundException;
 import javax.ws.rs.BadRequestException;
 
 import java.io.FileNotFoundException;
@@ -23,6 +24,13 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
     CustomRestException handleBadRequest(Exception e){
         log.error("Bad Request Error:",e);
         return new CustomRestException(HttpStatus.BAD_REQUEST);
+    }
+    @ResponseBody
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ExceptionHandler({EntityNotFoundException.class})
+    CustomRestException handleNotFound(Exception e){
+        log.error("Not Found Error:",e);
+        return new CustomRestException(HttpStatus.NOT_FOUND);
     }
 
     @ResponseBody

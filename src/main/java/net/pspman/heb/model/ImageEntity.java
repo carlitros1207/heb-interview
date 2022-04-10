@@ -12,25 +12,34 @@ import javax.persistence.Table;
 import java.math.BigInteger;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.Data;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.Hibernate;
 
-@Data
+@Getter
+@Setter
+@ToString
+@RequiredArgsConstructor
 @Entity
 @Table(name = "image")
-@NoArgsConstructor
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class ImageEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "image_id")
+    @Column
     private BigInteger id;
 
     @Column
@@ -39,13 +48,15 @@ public class ImageEntity {
     @Column
     private String label;
 
-    @OneToMany(mappedBy = "imageEntity",cascade = CascadeType.ALL,fetch = FetchType.EAGER)
     @JsonIgnore
+    @OneToMany(mappedBy = "imageEntity",cascade = CascadeType.ALL,fetch = FetchType.EAGER)
     private Set<DetectedObjectEntity> detectedObjects = new HashSet<>();
 
     @JsonGetter
     public List<String> getObjects(){
-        return detectedObjects.stream().map(DetectedObjectEntity::getObject).collect(Collectors.toList());
+        return detectedObjects.stream()
+                .map(DetectedObjectEntity::getName)
+                .collect(Collectors.toList());
     }
 
     public ImageEntity(ImageRequest request) {
@@ -59,9 +70,21 @@ public class ImageEntity {
 
     public void addLabel(String label){
         DetectedObjectEntity detectedObjectEntity = new DetectedObjectEntity();
-        detectedObjectEntity.setObject(label);
+        detectedObjectEntity.setName(label);
         this.detectedObjects.add(detectedObjectEntity);
         detectedObjectEntity.setImageEntity(this);
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
+        ImageEntity that = (ImageEntity) o;
+        return id != null && Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
 }

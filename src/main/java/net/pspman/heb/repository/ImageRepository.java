@@ -10,6 +10,6 @@ import org.springframework.data.repository.query.Param;
 
 public interface ImageRepository extends JpaRepository<ImageEntity, BigInteger> {
 
-    @Query(value = "select * from image left join detected_object d on image.image_id = d.image_id where object in :objects",nativeQuery = true)
-    List<ImageEntity> findAllByDetected(@Param("objects") List<String> objects);
+    @Query(value = "select * from image left join detected_object d on image.id = d.image_id where d.name in :objects",nativeQuery = true)
+    List<ImageEntity> findAllByObjects(@Param("objects") List<String> objects);
 }
